@@ -14,7 +14,7 @@ namespace FranchukIvan.RobotChallange
         private const int AttackEnergyLoss = 30;       // Energy lost when attacking another robot
         private const int EnergyPercentageFromAttack = 10; // Percentage of energy taken from the attacked robot
 
-        public string Author => "Franchuk Ivan";
+        public string Author => "1Franchuk Ivan";
 
         public RobotCommand DoStep(IList<Robot.Common.Robot> robots, int robotToMoveIndex, Map map)
         {
