@@ -5,113 +5,133 @@ using System.Linq;
 
 namespace FranchukIvan.RobotChallange
 {
-    public class FranchukIvanAlgorithm : IRobotAlgorithm
+    internal class Functions
     {
-        private const int MinEnergyForNewRobot = 500;  // Minimum energy required to create a new robot
-        private const int EnergyForNewRobot = 200;     // Energy cost for creating a new robot
-        private const int MaxStationEnergy = 2000;     // Maximum energy of a station
-        private const int CollectionRange = 2;         // Range to collect energy from a station
-        private const int AttackEnergyLoss = 30;       // Energy lost when attacking another robot
-        private const int EnergyPercentageFromAttack = 10; // Percentage of energy taken from the attacked robot
+        private const int NearbyRadius = 1;
+        private const int EnergyRadius = 2;
 
-        public string Author => "1Franchuk Ivan";
+        public static int DistanceCost(Position center, Position distant) =>
+            (center.X - distant.X) * (center.X - distant.X) + (center.Y - distant.Y) * (center.Y - distant.Y);
+
+        public static int GetAuthorRobotCount(IList<Robot.Common.Robot> robots, string author) =>
+            robots.Count(robot => robot.OwnerName == author);
+
+        public static int GetNearbyRobotCount(IList<Robot.Common.Robot> robots, Position position) =>
+            robots.Count(robot => IsWithinRadius(position, robot.Position, NearbyRadius));
+
+        public static bool IsWithinRadius(Position center, Position point, int radius) =>
+            Math.Abs(center.X - point.X) <= radius && Math.Abs(center.Y - point.Y) <= radius;
+
+        public static bool IsAvailablePosition(Map map, IList<Robot.Common.Robot> robots, Position position, string author)
+        {
+            if (position.X > 100 || position.X < 0 || position.Y > 100 || position.Y < 0)
+                return false;
+
+            return !robots.Any(robot => robot.Position.Equals(position) && robot.OwnerName == author);
+        }
+
+        public static List<KeyValuePair<int, Position>> BestPositions(Map map, Position center, int radius)
+        {
+            int length = 2 * radius + 1;
+            int[,] numArray = new int[length, length];
+            int num1 = center.Y - radius;
+            int num2 = center.X - radius;
+
+            foreach (EnergyStation station in map.Stations)
+            {
+                if (station.Position.X >= num2 - 2 && station.Position.X < num2 + length + 2 &&
+                    station.Position.Y >= num1 - 2 && station.Position.Y < num1 + length + 2)
+                {
+                    int num3 = station.Position.X - num2;
+                    int num4 = station.Position.Y - num1;
+
+                    for (int index1 = -2; index1 <= 2; ++index1)
+                    {
+                        for (int index2 = -2; index2 <= 2; ++index2)
+                        {
+                            if (num3 + index2 >= 0 && num3 + index2 < length && num4 + index1 >= 0 && num4 + index1 < length)
+                                numArray[num4 + index1, num3 + index2] += station.Energy;
+                        }
+                    }
+                }
+            }
+
+            var keyValuePairList = new List<KeyValuePair<int, Position>>();
+            for (int index3 = 0; index3 < length; ++index3)
+            {
+                for (int index4 = 0; index4 < length; ++index4)
+                {
+                    numArray[index3, index4] -= DistanceCost(center, new Position(num2 + index4, num1 + index3));
+                    keyValuePairList.Add(new KeyValuePair<int, Position>(numArray[index3, index4], new Position(num2 + index4, num1 + index3)));
+                }
+            }
+
+            keyValuePairList.Sort((pair1, pair2) => -pair1.Key.CompareTo(pair2.Key));
+            return keyValuePairList;
+        }
+    }
+
+    public class IvanFranchukAlgorithm : IRobotAlgorithm
+    {
+        private static int Fri = -1;
+        private static int round = 0;
+
+        public string Author => "Ivan Franchuk";
 
         public RobotCommand DoStep(IList<Robot.Common.Robot> robots, int robotToMoveIndex, Map map)
         {
-            var robot = robots[robotToMoveIndex];
+            if (Fri == -1)
+                Fri = robotToMoveIndex;
 
-            // Try to create a new robot if energy is sufficient
-            if (robot.Energy > MinEnergyForNewRobot)
+            if (Fri == robotToMoveIndex)
+                ++round;
+
+            if (round == 51)
+                return new CollectEnergyCommand();
+
+            Robot.Common.Robot robot = robots[robotToMoveIndex];
+
+            if (round % 10 == 5)
             {
-                var freePosition = FindFreePosition(robot.Position, robots, map);
-                if (freePosition != null)
+                foreach (var bestPosition in Functions.BestPositions(map, robot.Position, 100))
                 {
-                    return new CreateNewRobotCommand { NewRobotEnergy = EnergyForNewRobot };
+                    if (Functions.IsAvailablePosition(map, robots, bestPosition.Value, Author) &&
+                        robot.Energy > Functions.DistanceCost(robot.Position, bestPosition.Value))
+                    {
+                        return new MoveCommand { NewPosition = bestPosition.Value };
+                    }
                 }
             }
 
-            var closestStation = FindClosestEnergyStation(robot, robots, map);
+            if (Functions.GetAuthorRobotCount(robots, Author) < 100 && robot.Energy > 300)
+                return new CreateNewRobotCommand();
 
-            if (closestStation != null)
+            IList<EnergyStation> nearbyResources = map.GetNearbyResources(robot.Position, 2);
+            if (nearbyResources.Count > 0)
             {
-                // If the robot is within the collection range, collect energy
-                if (GetDistance(robot.Position, closestStation.Position) <= CollectionRange)
+                foreach (var energyStation in nearbyResources)
                 {
-                    return new CollectEnergyCommand();
-                }
-                else
-                {
-                    // Move towards the closest energy station
-                    var nextPosition = GetNextPositionTowards(robot.Position, closestStation.Position, robots, map);
-                    return new MoveCommand { NewPosition = nextPosition };
+                    if (round < 5 || energyStation.Energy > 100)
+                        return new CollectEnergyCommand();
                 }
             }
 
-            // If no station is found, stay in place
-            return new MoveCommand { NewPosition = robot.Position };
-        }
-
-        private EnergyStation FindClosestEnergyStation(Robot.Common.Robot robot, IList<Robot.Common.Robot> robots, Map map)
-        {
-            return map.Stations
-                      .Where(station => IsPositionFree(station.Position, robots, map))
-                      .OrderBy(station => GetDistance(robot.Position, station.Position))
-                      .FirstOrDefault();
-        }
-
-        private int GetDistance(Position a, Position b)
-        {
-            return Math.Abs(a.X - b.X) + Math.Abs(a.Y - b.Y);
-        }
-
-        private Position GetNextPositionTowards(Position current, Position target, IList<Robot.Common.Robot> robots, Map map)
-        {
-            int newX = current.X;
-            int newY = current.Y;
-
-            if (current.X < target.X) newX++;
-            else if (current.X > target.X) newX--;
-
-            if (current.Y < target.Y) newY++;
-            else if (current.Y > target.Y) newY--;
-
-            var nextPosition = new Position(newX, newY);
-
-            // Ensure that the new position is within bounds and not occupied
-            if (IsPositionFree(nextPosition, robots, map))
+            foreach (var bestPosition in Functions.BestPositions(map, robot.Position, 5))
             {
-                return nextPosition;
+                if (Functions.IsAvailablePosition(map, robots, bestPosition.Value, Author) &&
+                    robot.Energy > Functions.DistanceCost(robot.Position, bestPosition.Value))
+                {
+                    return new MoveCommand { NewPosition = bestPosition.Value };
+                }
             }
 
-            // If the direct move is not possible, stay in place or find another path
-            return current;
+            return new CollectEnergyCommand();
         }
 
-        private Position FindFreePosition(Position current, IList<Robot.Common.Robot> robots, Map map)
-        {
-            var directions = new List<Position>
-            {
-                new Position(current.X + 1, current.Y),
-                new Position(current.X - 1, current.Y),
-                new Position(current.X, current.Y + 1),
-                new Position(current.X, current.Y - 1),
-            };
+        public int Round { get; set; }
 
-            // Use LINQ to find the first free position
-            return directions.Find(direction => IsPositionFree(direction, robots, map));
-        }
+        public IvanFranchukAlgorithm() => Logger.OnLogRound += LogRound;
 
-        private bool IsPositionFree(Position position, IList<Robot.Common.Robot> robots, Map map)
-        {
-            // Check if the position is within map bounds
-            if (position.X < map.MinPozition.X || position.Y < map.MinPozition.Y ||
-                position.X >= map.MaxPozition.X || position.Y >= map.MaxPozition.Y)
-            {
-                return false;
-            }
-
-            // Check if the position is not occupied by another robot
-            return !robots.Any(robot => robot.Position.X == position.X && robot.Position.Y == position.Y);
-        }
+        private void LogRound(object sender, LogRoundEventArgs e) => ++Round;
     }
 }
