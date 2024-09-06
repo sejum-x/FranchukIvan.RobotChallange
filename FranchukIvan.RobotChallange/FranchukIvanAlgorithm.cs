@@ -16,34 +16,33 @@ namespace FranchukIvan.RobotChallange
         {
             var robot = robots[robotToMoveIndex];
 
-            // If the robot has enough energy to create a new robot, try to create one
+            // Check if the robot has enough energy to create a new robot
             if (robot.Energy > MinEnergyForNewRobot)
             {
                 var freePosition = FindFreePosition(robot.Position, robots, map);
                 if (freePosition != null)
                 {
+                    // Create a new robot
                     return new CreateNewRobotCommand { NewRobotEnergy = EnergyForNewRobot };
                 }
             }
 
+            // Proceed with existing robot actions
             var closestStation = FindClosestEnergyStation(robot, map);
 
             if (closestStation != null)
             {
-                // If the robot is within 2 cells of the energy station, collect energy
                 if (GetDistance(robot.Position, closestStation.Position) <= 2)
                 {
                     return new CollectEnergyCommand();
                 }
                 else
                 {
-                    // Move towards the energy station
                     var nextPosition = GetNextPositionTowards(robot.Position, closestStation.Position);
                     return new MoveCommand { NewPosition = nextPosition };
                 }
             }
 
-            // If no station is found, just stay in place
             return new MoveCommand { NewPosition = robot.Position };
         }
 
