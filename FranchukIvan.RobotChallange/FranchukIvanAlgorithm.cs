@@ -16,39 +16,41 @@ namespace FranchukIvan.RobotChallange
         {
             var robot = robots[robotToMoveIndex];
 
-            // Check if the robot has enough energy to create a new robot
+            // If the robot has enough energy to create a new robot, try to create one
             if (robot.Energy > MinEnergyForNewRobot)
             {
                 var freePosition = FindFreePosition(robot.Position, robots, map);
                 if (freePosition != null)
                 {
-                    // Create a new robot
                     return new CreateNewRobotCommand { NewRobotEnergy = EnergyForNewRobot };
                 }
             }
 
-            // Proceed with existing robot actions
-            var closestStation = FindClosestEnergyStation(robot, map);
+            var closestStation = FindClosestEnergyStation(robot, robots, map);
 
             if (closestStation != null)
             {
+                // If the robot is within 2 cells of the energy station, collect energy
                 if (GetDistance(robot.Position, closestStation.Position) <= 2)
                 {
                     return new CollectEnergyCommand();
                 }
                 else
                 {
-                    var nextPosition = GetNextPositionTowards(robot.Position, closestStation.Position);
+                    // Move towards the energy station
+                    var nextPosition = GetNextPositionTowards(robot.Position, closestStation.Position, robots, map);
                     return new MoveCommand { NewPosition = nextPosition };
                 }
             }
 
+            // If no station is found, just stay in place
             return new MoveCommand { NewPosition = robot.Position };
         }
 
-        private EnergyStation FindClosestEnergyStation(Robot.Common.Robot robot, Map map)
+        private EnergyStation FindClosestEnergyStation(Robot.Common.Robot robot, IList<Robot.Common.Robot> robots, Map map)
         {
             return map.Stations
+                      .Where(station => IsPositionFree(station.Position, robots, map))
                       .OrderBy(station => GetDistance(robot.Position, station.Position))
                       .FirstOrDefault();
         }
@@ -58,7 +60,7 @@ namespace FranchukIvan.RobotChallange
             return Math.Abs(a.X - b.X) + Math.Abs(a.Y - b.Y);
         }
 
-        private Position GetNextPositionTowards(Position current, Position target)
+        private Position GetNextPositionTowards(Position current, Position target, IList<Robot.Common.Robot> robots, Map map)
         {
             int newX = current.X;
             int newY = current.Y;
@@ -69,7 +71,16 @@ namespace FranchukIvan.RobotChallange
             if (current.Y < target.Y) newY++;
             else if (current.Y > target.Y) newY--;
 
-            return new Position(newX, newY);
+            var nextPosition = new Position(newX, newY);
+
+            // Ensure that the new position is within bounds and not occupied
+            if (IsPositionFree(nextPosition, robots, map))
+            {
+                return nextPosition;
+            }
+
+            // If the direct move is not possible, stay in place or find another path
+            return current;
         }
 
         private Position FindFreePosition(Position current, IList<Robot.Common.Robot> robots, Map map)
@@ -85,7 +96,6 @@ namespace FranchukIvan.RobotChallange
             // Use LINQ to find the first free position
             return directions.Find(direction => IsPositionFree(direction, robots, map));
         }
-
 
         private bool IsPositionFree(Position position, IList<Robot.Common.Robot> robots, Map map)
         {
