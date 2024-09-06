@@ -9,6 +9,10 @@ namespace FranchukIvan.RobotChallange
     {
         private const int MinEnergyForNewRobot = 500;  // Minimum energy required to create a new robot
         private const int EnergyForNewRobot = 200;     // Energy cost for creating a new robot
+        private const int MaxStationEnergy = 2000;     // Maximum energy of a station
+        private const int CollectionRange = 2;         // Range to collect energy from a station
+        private const int AttackEnergyLoss = 30;       // Energy lost when attacking another robot
+        private const int EnergyPercentageFromAttack = 10; // Percentage of energy taken from the attacked robot
 
         public string Author => "Franchuk Ivan";
 
@@ -16,7 +20,7 @@ namespace FranchukIvan.RobotChallange
         {
             var robot = robots[robotToMoveIndex];
 
-            // If the robot has enough energy to create a new robot, try to create one
+            // Try to create a new robot if energy is sufficient
             if (robot.Energy > MinEnergyForNewRobot)
             {
                 var freePosition = FindFreePosition(robot.Position, robots, map);
@@ -30,20 +34,20 @@ namespace FranchukIvan.RobotChallange
 
             if (closestStation != null)
             {
-                // If the robot is within 2 cells of the energy station, collect energy
-                if (GetDistance(robot.Position, closestStation.Position) <= 2)
+                // If the robot is within the collection range, collect energy
+                if (GetDistance(robot.Position, closestStation.Position) <= CollectionRange)
                 {
                     return new CollectEnergyCommand();
                 }
                 else
                 {
-                    // Move towards the energy station
+                    // Move towards the closest energy station
                     var nextPosition = GetNextPositionTowards(robot.Position, closestStation.Position, robots, map);
                     return new MoveCommand { NewPosition = nextPosition };
                 }
             }
 
-            // If no station is found, just stay in place
+            // If no station is found, stay in place
             return new MoveCommand { NewPosition = robot.Position };
         }
 
