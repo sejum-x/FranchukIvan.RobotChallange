@@ -7,10 +7,11 @@ namespace FranchukIvan.RobotChallange
 {
     internal class Functions
     {
-        private const int NearbyRadius = 1;
-        private const int EnergyRadius = 2;
+        protected Functions() { }
 
-        public static int DistanceCost(Position center, Position distant) =>
+        private const int NearbyRadius = 1;
+
+        public static int GetDistanceCost(Position center, Position distant) =>
             (center.X - distant.X) * (center.X - distant.X) + (center.Y - distant.Y) * (center.Y - distant.Y);
 
         public static int GetAuthorRobotCount(IList<Robot.Common.Robot> robots, string author) =>
@@ -88,7 +89,7 @@ namespace FranchukIvan.RobotChallange
             return Enumerable.Range(0, length)
                 .SelectMany(y => Enumerable.Range(0, length)
                     .Select(x => new KeyValuePair<int, Position>(
-                        energyGrid[y, x] - DistanceCost(center, new Position(topLeftX + x, topLeftY + y)),
+                        energyGrid[y, x] - GetDistanceCost(center, new Position(topLeftX + x, topLeftY + y)),
                         new Position(topLeftX + x, topLeftY + y))))
                 .ToList();
         }

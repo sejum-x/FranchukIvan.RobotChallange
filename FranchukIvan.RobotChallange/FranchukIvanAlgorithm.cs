@@ -29,7 +29,7 @@ namespace FranchukIvan.RobotChallange
                 var bestPosition = Functions.BestPositions(map, robot.Position, 100)
                     .ToList()
                     .Find(p => Functions.IsAvailablePosition(map, robots, p.Value, Author) &&
-                               robot.Energy > Functions.DistanceCost(robot.Position, p.Value));
+                               robot.Energy > Functions.GetDistanceCost(robot.Position, p.Value));
 
                 if (bestPosition.Value != null)
                 {
@@ -49,7 +49,7 @@ namespace FranchukIvan.RobotChallange
             var nextBestPosition = Functions.BestPositions(map, robot.Position, 5)
                 .ToList()
                 .Find(p => Functions.IsAvailablePosition(map, robots, p.Value, Author) &&
-                           robot.Energy > Functions.DistanceCost(robot.Position, p.Value));
+                           robot.Energy > Functions.GetDistanceCost(robot.Position, p.Value));
 
             if (nextBestPosition.Value != null)
             {
