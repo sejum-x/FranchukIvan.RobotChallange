@@ -9,14 +9,25 @@ namespace FranchukIvan.RobotChallange
     {
         private int firstRobotIndex = -1;
         private int currentRound = 0;
+        private const int MaxRobotsCount = 100;
+        private const int MinEnergyForNewRobot = 250;
 
+        private readonly Dictionary<int, int> energyThresholds = new Dictionary<int, int>
+        {
+            { 40, 2500 },
+            { 35, 2000 },
+            { 30, 1500 },
+            { 20, 1000 },
+            { 10, 400 },
+            { 0, 150 }
+        };
+        
         public string Author => "Ivan Franchuk";
 
         public RobotCommand DoStep(IList<Robot.Common.Robot> robots, int robotToMoveIndex, Map map)
         {
             InitializeRound(robotToMoveIndex);
-
-            Robot.Common.Robot robot = robots[robotToMoveIndex];
+            var robot = robots[robotToMoveIndex];
 
             var actions = new Dictionary<Func<bool>, Func<RobotCommand>>
             {
@@ -27,54 +38,38 @@ namespace FranchukIvan.RobotChallange
                 { () => TryMoveToBestPosition(robot, map, robots) != null, () => TryMoveToBestPosition(robot, map, robots) }
             };
 
-            foreach (var action in actions)
-            {
-                if (action.Key())
-                {
-                    return action.Value();
-                }
-            }
-
-            return new CollectEnergyCommand();
+            return ExecuteActions(actions) ?? new CollectEnergyCommand();
         }
-
 
         private void InitializeRound(int robotToMoveIndex)
         {
-            if (firstRobotIndex == -1)
-                firstRobotIndex = robotToMoveIndex;
+            if (firstRobotIndex == -1) firstRobotIndex = robotToMoveIndex;
+            if (firstRobotIndex == robotToMoveIndex) ++currentRound;
+        }
 
-            if (firstRobotIndex == robotToMoveIndex)
-                ++currentRound;
+        private RobotCommand ExecuteActions(Dictionary<Func<bool>, Func<RobotCommand>> actions)
+        {
+            foreach (var action in actions)
+            {
+                if (action.Key()) return action.Value();
+            }
+            return null;
         }
 
         private bool ShouldCreateNewRobot(IList<Robot.Common.Robot> robots, Robot.Common.Robot robot)
         {
-            return Functions.GetAuthorRobotCount(robots, Author) < 100 && robot.Energy > 250;
+            return Functions.GetAuthorRobotCount(robots, Author) < MaxRobotsCount && robot.Energy > MinEnergyForNewRobot;
         }
 
         private RobotCommand TryAttack(Robot.Common.Robot robot, Map map, IList<Robot.Common.Robot> robots)
         {
             var potentialTargets = Functions.FindAttackTargets(map, robot.Position, robots, Author);
-            if (!potentialTargets.Any())
-                return null;
+            if (!potentialTargets.Any()) return null;
 
             Position targetPosition = potentialTargets.First().Value;
             int moveCost = Functions.GetDistanceCost(robot.Position, targetPosition);
 
-            var energyThresholds = new Dictionary<int, int>
-            {
-                { 40, 2000 },
-                { 30, 1500 },
-                { 20, 1000 },
-                { 10, 400 }, 
-                { 0, 100 }    
-            };
-
-            int roundThreshold = energyThresholds
-                .Where(kvp => currentRound > kvp.Key)
-                .Select(kvp => kvp.Value)
-                .FirstOrDefault();
+            int roundThreshold = GetEnergyThresholdForRound();
 
             if (robot.Energy > moveCost + roundThreshold)
                 return new MoveCommand { NewPosition = targetPosition };
@@ -82,11 +77,19 @@ namespace FranchukIvan.RobotChallange
             return null;
         }
 
+        private int GetEnergyThresholdForRound()
+        {
+            int roundThreshold = energyThresholds
+                .Where(kvp => currentRound > kvp.Key)
+                .Select(kvp => kvp.Value)
+                .FirstOrDefault();
+
+            return roundThreshold;
+        }
+
         private bool HasEnoughEnergyNearby(Robot.Common.Robot robot, Map map)
         {
-            int totalEnergyNearby = map.GetNearbyResources(robot.Position, 2)
-                                     .Sum(station => station.Energy);
-            return totalEnergyNearby > 150;
+            return map.GetNearbyResources(robot.Position, 2).Sum(station => station.Energy) > 150;
         }
 
         private RobotCommand TryMoveToBestPosition(Robot.Common.Robot robot, Map map, IList<Robot.Common.Robot> robots)
@@ -99,13 +102,12 @@ namespace FranchukIvan.RobotChallange
                     return new MoveCommand { NewPosition = positionRate.Value };
                 }
             }
-
             return null;
         }
 
         public int Round { get; set; }
 
-        public string Description => throw new System.NotImplementedException();
+        public string Description => "Ivan Franchuk's Robot Algorithm for competition.";
 
         public IvanFranchukAlgorithm() => Logger.OnLogRound += LogRound;
 
