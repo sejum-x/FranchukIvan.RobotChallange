@@ -10,7 +10,7 @@ namespace FranchukIvan.RobotChallange
         private const int NearbyRadius = 1;
         private const int MapSize = 100;
         private const int AttackRadius = 10;
-        private const int EnergyThreshold = 1500;
+        private const int EnergyThreshold = 1000;
 
         protected Functions() { }
 

@@ -15,7 +15,6 @@ namespace FranchukIvan.RobotChallange
         private readonly Dictionary<int, int> energyThresholds = new Dictionary<int, int>
         {
             { 40, 2500 },
-            { 35, 2000 },
             { 30, 1500 },
             { 20, 1000 },
             { 10, 400 },
@@ -33,7 +32,7 @@ namespace FranchukIvan.RobotChallange
             {
                 { () => currentRound == 51, () => new CollectEnergyCommand() },
                 { () => ShouldCreateNewRobot(robots, robot), () => new CreateNewRobotCommand() },
-                { () => TryAttack(robot, map, robots) != null, () => TryAttack(robot, map, robots) },
+                //{ () => TryAttack(robot, map, robots) != null, () => TryAttack(robot, map, robots) },
                 { () => HasEnoughEnergyNearby(robot, map), () => new CollectEnergyCommand() },
                 { () => TryMoveToBestPosition(robot, map, robots) != null, () => TryMoveToBestPosition(robot, map, robots) }
             };
