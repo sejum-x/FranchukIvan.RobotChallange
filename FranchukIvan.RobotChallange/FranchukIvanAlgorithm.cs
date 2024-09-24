@@ -32,7 +32,7 @@ namespace FranchukIvan.RobotChallange
             {
                 { () => currentRound == 51, () => new CollectEnergyCommand() },
                 { () => ShouldCreateNewRobot(robots, robot), () => new CreateNewRobotCommand() },
-                //{ () => TryAttack(robot, map, robots) != null, () => TryAttack(robot, map, robots) },
+                { () => TryAttack(robot, map, robots) != null, () => TryAttack(robot, map, robots) },
                 { () => HasEnoughEnergyNearby(robot, map), () => new CollectEnergyCommand() },
                 { () => TryMoveToBestPosition(robot, map, robots) != null, () => TryMoveToBestPosition(robot, map, robots) }
             };
@@ -70,11 +70,15 @@ namespace FranchukIvan.RobotChallange
 
             int roundThreshold = GetEnergyThresholdForRound();
 
-            if (robot.Energy > moveCost + roundThreshold)
+            var targetRobot = robots.FirstOrDefault(r => r.Position.Equals(targetPosition));
+            if (targetRobot != null && robot.Energy > moveCost + roundThreshold && robot.Energy > targetRobot.Energy)
+            {
                 return new MoveCommand { NewPosition = targetPosition };
+            }
 
             return null;
         }
+
 
         private int GetEnergyThresholdForRound()
         {
