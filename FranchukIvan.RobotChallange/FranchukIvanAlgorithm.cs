@@ -16,27 +16,28 @@ namespace FranchukIvan.RobotChallange
         {
             InitializeRound(robotToMoveIndex);
 
-            if (currentRound == 51)
-                return new CollectEnergyCommand();
-
             Robot.Common.Robot robot = robots[robotToMoveIndex];
 
-            if (ShouldCreateNewRobot(robots, robot))
-                return new CreateNewRobotCommand();
+            var actions = new Dictionary<Func<bool>, Func<RobotCommand>>
+            {
+                { () => currentRound == 51, () => new CollectEnergyCommand() },
+                { () => ShouldCreateNewRobot(robots, robot), () => new CreateNewRobotCommand() },
+                { () => TryAttack(robot, map, robots) != null, () => TryAttack(robot, map, robots) },
+                { () => HasEnoughEnergyNearby(robot, map), () => new CollectEnergyCommand() },
+                { () => TryMoveToBestPosition(robot, map, robots) != null, () => TryMoveToBestPosition(robot, map, robots) }
+            };
 
-            var attackCommand = TryAttack(robot, map, robots);
-            if (attackCommand != null)
-                return attackCommand;
-
-            if (HasEnoughEnergyNearby(robot, map))
-                return new CollectEnergyCommand();
-
-            var moveCommand = TryMoveToBestPosition(robot, map, robots);
-            if (moveCommand != null)
-                return moveCommand;
+            foreach (var action in actions)
+            {
+                if (action.Key())
+                {
+                    return action.Value();
+                }
+            }
 
             return new CollectEnergyCommand();
         }
+
 
         private void InitializeRound(int robotToMoveIndex)
         {
@@ -61,7 +62,19 @@ namespace FranchukIvan.RobotChallange
             Position targetPosition = potentialTargets.First().Value;
             int moveCost = Functions.GetDistanceCost(robot.Position, targetPosition);
 
-            int roundThreshold = 100 + (Math.Max(0, currentRound - 20) / 5) * 200;
+            var energyThresholds = new Dictionary<int, int>
+            {
+                { 40, 2000 },
+                { 30, 1500 },
+                { 20, 1000 },
+                { 10, 400 }, 
+                { 0, 100 }    
+            };
+
+            int roundThreshold = energyThresholds
+                .Where(kvp => currentRound > kvp.Key)
+                .Select(kvp => kvp.Value)
+                .FirstOrDefault();
 
             if (robot.Energy > moveCost + roundThreshold)
                 return new MoveCommand { NewPosition = targetPosition };
