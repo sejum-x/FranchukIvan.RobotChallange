@@ -1,4 +1,5 @@
 ﻿using Robot.Common;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -15,7 +16,6 @@ namespace FranchukIvan.RobotChallange
         {
             InitializeRound(robotToMoveIndex);
 
-            // На 51-му раунді робот збирає енергію
             if (currentRound == 51)
                 return new CollectEnergyCommand();
 
@@ -24,16 +24,13 @@ namespace FranchukIvan.RobotChallange
             if (ShouldCreateNewRobot(robots, robot))
                 return new CreateNewRobotCommand();
 
-            // Атакуємо, якщо є потенційні цілі
             var attackCommand = TryAttack(robot, map, robots);
             if (attackCommand != null)
                 return attackCommand;
 
-            // Збираємо енергію, якщо поруч є багато
             if (HasEnoughEnergyNearby(robot, map))
                 return new CollectEnergyCommand();
 
-            // Переміщуємо робота на найвигіднішу позицію
             var moveCommand = TryMoveToBestPosition(robot, map, robots);
             if (moveCommand != null)
                 return moveCommand;
@@ -64,7 +61,9 @@ namespace FranchukIvan.RobotChallange
             Position targetPosition = potentialTargets.First().Value;
             int moveCost = Functions.GetDistanceCost(robot.Position, targetPosition);
 
-            if (robot.Energy > moveCost + 100)
+            int roundThreshold = 100 + (Math.Max(0, currentRound - 20) / 5) * 200;
+
+            if (robot.Energy > moveCost + roundThreshold)
                 return new MoveCommand { NewPosition = targetPosition };
 
             return null;
