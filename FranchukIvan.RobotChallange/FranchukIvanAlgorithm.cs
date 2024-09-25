@@ -32,13 +32,15 @@ namespace FranchukIvan.RobotChallange
             {
                 { () => currentRound == 51, () => new CollectEnergyCommand() },
                 { () => ShouldCreateNewRobot(robots, robot), () => new CreateNewRobotCommand() },
-                { () => TryAttack(robot, map, robots) != null, () => TryAttack(robot, map, robots) },
                 { () => HasEnoughEnergyNearby(robot, map), () => new CollectEnergyCommand() },
+                { () => currentRound < 35 && TryMidGameAttack(robot, robots) != null, () => TryMidGameAttack(robot, robots) },
+                { () => currentRound >= 35 && TryLateGameAttack(robot, map, robots) != null, () => TryLateGameAttack(robot, map, robots) },
                 { () => TryMoveToBestPosition(robot, map, robots) != null, () => TryMoveToBestPosition(robot, map, robots) }
             };
 
             return ExecuteActions(actions) ?? new CollectEnergyCommand();
         }
+
 
         private void InitializeRound(int robotToMoveIndex)
         {
@@ -60,7 +62,7 @@ namespace FranchukIvan.RobotChallange
             return Functions.GetAuthorRobotCount(robots, Author) < MaxRobotsCount && robot.Energy > MinEnergyForNewRobot;
         }
 
-        private RobotCommand TryAttack(Robot.Common.Robot robot, Map map, IList<Robot.Common.Robot> robots)
+        private RobotCommand TryLateGameAttack(Robot.Common.Robot robot, Map map, IList<Robot.Common.Robot> robots)
         {
             var potentialTargets = Functions.FindAttackTargets(map, robot.Position, robots, Author);
             if (!potentialTargets.Any()) return null;
@@ -79,6 +81,28 @@ namespace FranchukIvan.RobotChallange
             return null;
         }
 
+
+        private RobotCommand TryMidGameAttack(Robot.Common.Robot robot, IList<Robot.Common.Robot> robots)
+        {
+            var attackTargets = Functions.getRobotsToNearAttack(robot.Position, robots, this.Author, currentRound);
+            KeyValuePair<int, Position> adjacentTarget = attackTargets.FirstOrDefault(target => Functions.IsAdjacent(robot.Position, target.Value));
+
+            if (adjacentTarget.Value != null)
+            {
+                return new MoveCommand { NewPosition = adjacentTarget.Value };
+            }
+             
+            if (attackTargets.Count > 0)
+            {
+                KeyValuePair<int, Position> bestTarget = attackTargets.First();
+                if (robot.Energy > Functions.GetDistanceCost(robot.Position, bestTarget.Value))
+                {
+                    return new MoveCommand { NewPosition = bestTarget.Value };
+                }
+            }
+
+            return null;
+        }
 
         private int GetEnergyThresholdForRound()
         {
