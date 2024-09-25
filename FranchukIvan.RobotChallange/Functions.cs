@@ -9,8 +9,6 @@ namespace FranchukIvan.RobotChallange
     {
         private const int NearbyRadius = 1;
         private const int MapSize = 100;
-        private const int AttackRadius = 10;
-        private const int EnergyThreshold = 1000;
 
         protected Functions() { }
 
@@ -34,27 +32,32 @@ namespace FranchukIvan.RobotChallange
 
         public static bool IsAvailablePosition(Map map, IList<Robot.Common.Robot> robots, Position position, string author) =>
             !IsOutOfBounds(position) && !robots.Any(robot => robot.Position.Equals(position));
-        
-        public static List<KeyValuePair<int, Position>> getRobotsToNearAttack(
+
+        public static List<KeyValuePair<int, Position>> GetRobotsToNearAttack(
             Position currentPosition,
-            IList<Robot.Common.Robot> robots,
-            string author,
-            int roundNumber)
+            IList<Robot.Common.Robot> allRobots,
+            string currentAuthor,
+            int currentRound)
         {
-            List<KeyValuePair<int, Position>> robotsToNearAttack = new List<KeyValuePair<int, Position>>();
-            foreach (Robot.Common.Robot robot in (IEnumerable<Robot.Common.Robot>)robots)
+            List<KeyValuePair<int, Position>> nearbyEnemyRobots = new List<KeyValuePair<int, Position>>();
+
+            foreach (Robot.Common.Robot robot in allRobots)
             {
-                int num1 = GetDistanceCost(currentPosition, robot.Position) + 30;
-                int num2 = (int)((double)robot.Energy * 0.1) - num1;
-                if (robot.OwnerName != author && num2 >= 0)
+                int distanceCost = GetDistanceCost(currentPosition, robot.Position) + 30;
+                int attackPotential = (int)(robot.Energy * 0.1) - distanceCost;
+
+                if (robot.OwnerName != currentAuthor && attackPotential >= 0)
                 {
-                    int key = num1 - (int)((double)robot.Energy * 0.1);
-                    robotsToNearAttack.Add(new KeyValuePair<int, Position>(key, robot.Position));
+                    int priority = distanceCost - (int)(robot.Energy * 0.1);
+                    nearbyEnemyRobots.Add(new KeyValuePair<int, Position>(priority, robot.Position));
                 }
             }
-            robotsToNearAttack.Sort((Comparison<KeyValuePair<int, Position>>)((a, b) => a.Key.CompareTo(b.Key)));
-            return robotsToNearAttack;
+
+            nearbyEnemyRobots.Sort((robot1, robot2) => robot1.Key.CompareTo(robot2.Key));
+
+            return nearbyEnemyRobots;
         }
+
 
         public static List<KeyValuePair<int, Position>> EvaluatePositionValue(
             Map map,

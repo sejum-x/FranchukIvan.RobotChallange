@@ -54,7 +54,7 @@ namespace FranchukIvan.RobotChallange
         
         private RobotCommand TryAttack(Robot.Common.Robot robot, IList<Robot.Common.Robot> robots)
         {
-            var attackTargets = Functions.getRobotsToNearAttack(robot.Position, robots, this.Author, currentRound);
+            var attackTargets = Functions.GetRobotsToNearAttack(robot.Position, robots, this.Author, currentRound);
             KeyValuePair<int, Position> adjacentTarget = attackTargets.FirstOrDefault(target => Functions.IsAdjacent(robot.Position, target.Value));
 
             if (adjacentTarget.Value != null)
