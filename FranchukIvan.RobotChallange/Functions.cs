@@ -34,33 +34,7 @@ namespace FranchukIvan.RobotChallange
 
         public static bool IsAvailablePosition(Map map, IList<Robot.Common.Robot> robots, Position position, string author) =>
             !IsOutOfBounds(position) && !robots.Any(robot => robot.Position.Equals(position));
-
-        public static List<KeyValuePair<int, Position>> FindAttackTargets(
-            Map map,
-            Position robotPosition,
-            IList<Robot.Common.Robot> robots,
-            string author)
-        {
-            var killRate = robots
-                .Where(robot => robot.OwnerName != author &&
-                                IsWithinRadius(robotPosition, robot.Position, AttackRadius) &&
-                                robot.Energy >= EnergyThreshold)
-                .Select(robot => new KeyValuePair<int, Position>(
-                    CalculateKillPriority(robotPosition, robot),
-                    robot.Position))
-                .OrderByDescending(k => k.Key)
-                .ToList();
-
-            return killRate;
-        }
-
-        private static int CalculateKillPriority(Position from, Robot.Common.Robot targetRobot)
-        {
-            int distanceCost = GetDistanceCost(from, targetRobot.Position);
-            int energyImpact = (int)(targetRobot.Energy * 0.1);
-            return distanceCost + 30 - energyImpact;
-        }
-
+        
         public static List<KeyValuePair<int, Position>> getRobotsToNearAttack(
             Position currentPosition,
             IList<Robot.Common.Robot> robots,
