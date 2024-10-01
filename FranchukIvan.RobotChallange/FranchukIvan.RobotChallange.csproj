@@ -45,9 +45,16 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Chain\AttackHandler.cs" />
+    <Compile Include="Chain\CollectEnergyHandler.cs" />
+    <Compile Include="Chain\CommandChain.cs" />
+    <Compile Include="Chain\CreateNewRobotHandler.cs" />
+    <Compile Include="Chain\ICommandHandler.cs" />
+    <Compile Include="Chain\MoveToBestPositionHandler.cs" />
     <Compile Include="FranchukIvanAlgorithm.cs" />
     <Compile Include="Functions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

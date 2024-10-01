@@ -113,7 +113,7 @@ namespace FranchukIvan.RobotChallange.Test
 
             robots.Add(new Robot.Common.Robot { Position = new Position(2, 2), Energy = 400, OwnerName = "Opponent" });
 
-            var result = Functions.getRobotsToNearAttack(currentPosition, robots, "Ivan Franchuk", roundNumber);
+            var result = Functions.GetRobotsToNearAttack(currentPosition, robots, "Ivan Franchuk", roundNumber);
 
             Assert.IsTrue(result.Count > 0);
             var attackPosition = result.FirstOrDefault().Value;
@@ -130,7 +130,7 @@ namespace FranchukIvan.RobotChallange.Test
             robots.Add(new Robot.Common.Robot { Position = new Position(1, 1), Energy = 1000, OwnerName = "Opponent" });
             robots.Add(new Robot.Common.Robot { Position = new Position(2, 2), Energy = 1000, OwnerName = "Opponent" });
 
-            var result = Functions.getRobotsToNearAttack(currentPosition, robots, "Ivan Franchuk", roundNumber);
+            var result = Functions.GetRobotsToNearAttack(currentPosition, robots, "Ivan Franchuk", roundNumber);
 
             Assert.IsTrue(result.Count >= 2, "Expected at least two robots in the result");
 

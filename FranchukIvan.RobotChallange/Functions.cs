@@ -2,16 +2,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace FranchukIvan.RobotChallange
 {
-    public class Functions
+    public static class Functions
     {
         private const int NearbyRadius = 1;
         private const int MapSize = 100;
-
-        protected Functions() { }
 
         public static int GetAuthorRobotCount(IList<Robot.Common.Robot> robots, string author) =>
             robots.AsParallel().Count(robot => robot.OwnerName == author);
@@ -27,14 +24,14 @@ namespace FranchukIvan.RobotChallange
 
         public static int GetNearbyRobotCount(IList<Robot.Common.Robot> robots, Position position) =>
             robots.AsParallel().Count(robot => IsWithinRadius(position, robot.Position, NearbyRadius));
-        
+
         public static bool IsWithinRadius(Position center, Position point, int radius) =>
             Math.Abs(center.X - point.X) <= radius && Math.Abs(center.Y - point.Y) <= radius;
 
         public static bool IsAvailablePosition(Map map, IList<Robot.Common.Robot> robots, Position position, string author) =>
             !IsOutOfBounds(position) && !robots.Any(robot => robot.Position.Equals(position));
 
-        public static List<KeyValuePair<int, Position>> getRobotsToNearAttack(
+        public static List<KeyValuePair<int, Position>> GetRobotsToNearAttack(
             Position currentPosition,
             IList<Robot.Common.Robot> robots,
             string author,
@@ -52,7 +49,7 @@ namespace FranchukIvan.RobotChallange
                         int key = distanceCost - (int)(robot.Energy * 0.1);
                         return new KeyValuePair<int, Position>(key, robot.Position);
                     }
-                    return new KeyValuePair<int, Position>(int.MaxValue, robot.Position); 
+                    return new KeyValuePair<int, Position>(int.MaxValue, robot.Position);
                 })
                 .Where(pair => pair.Key != int.MaxValue)
                 .ToList();
@@ -80,15 +77,17 @@ namespace FranchukIvan.RobotChallange
                     int score = energyValue - GetDistanceCost(robotPosition, position);
                     return new KeyValuePair<int, Position>(score, position);
                 })
-                .OrderByDescending(p => p.Key)
+                .Where(pair => pair.Key > 0)
                 .ToList();
 
+            ratedPositions.Sort((a, b) => b.Key.CompareTo(a.Key));
             return ratedPositions;
         }
 
         public static int GetTotalNearbyEnergy(Map map, Position position) =>
-            map.GetNearbyResources(position, 2).Sum(station => station.Energy);
-        private static bool IsOutOfBounds(Position position) =>
-            position.X < 0 || position.X > MapSize || position.Y < 0 || position.Y > MapSize;
+            map.GetNearbyResources(position, NearbyRadius)
+               .Sum(resource => resource.Energy);
+
+        private static bool IsOutOfBounds(Position position) => position.X < 0 || position.X > MapSize || position.Y < 0 || position.Y > MapSize;
     }
 }

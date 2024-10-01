@@ -9,11 +9,15 @@ namespace FranchukIvan.RobotChallange.Test
         private IvanFranchukAlgorithm algorithm;
         private Map map;
         private IList<Robot.Common.Robot> robots;
+        private CommandChain commandChain;
 
         [SetUp]
         public void Setup()
         {
-            algorithm = new IvanFranchukAlgorithm();
+            // Створюємо новий екземпляр CommandChain (можеш замінити на мок-об'єкт при потребі)
+            commandChain = new CommandChain();
+            algorithm = new IvanFranchukAlgorithm(commandChain);
+
             map = new Map();
 
             robots = new List<Robot.Common.Robot>
@@ -23,7 +27,7 @@ namespace FranchukIvan.RobotChallange.Test
                 new Robot.Common.Robot { Position = new Position(10, 10), Energy = 150, OwnerName = "Opponent" }
             };
         }
-        
+
         [Test]
         public void Should_Create_New_Robot_When_Energy_Enough()
         {
@@ -39,7 +43,8 @@ namespace FranchukIvan.RobotChallange.Test
             robots[0].Energy = 200;
             robots[0].Position = new Position(5, 4);
 
-            robots[1].Energy = 100;
+            robots[1].Energy = 1000;
+            robots[1].Position = new Position(5, 5);
 
             var robotToMoveIndex = 0;
             var command = algorithm.DoStep(robots, robotToMoveIndex, map);
@@ -52,7 +57,7 @@ namespace FranchukIvan.RobotChallange.Test
         [Test]
         public void Should_Move_To_Best_Position_When_No_Enemies_Nearby()
         {
-            robots[0].Energy = 200;
+            robots[0].Energy = 240;
             robots[1].Position = new Position(50, 50);
 
             var robotToMoveIndex = 0;
