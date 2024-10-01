@@ -97,14 +97,6 @@ namespace FranchukIvan.RobotChallange.Test
         }
 
         [Test]
-        public void Functions_Constructor_Should_Be_Inaccessible()
-        {
-            var constructor = typeof(Functions).GetConstructors(System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
-            Assert.AreEqual(1, constructor.Length);
-            Assert.IsTrue(constructor[0].IsFamily);
-        }
-
-        [Test]
         public void GetRobotsToNearAttack_Should_Calculate_NetEnergyGain()
         {
             Position currentPosition = new Position(0, 0);

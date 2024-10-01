@@ -9,6 +9,8 @@ namespace FranchukIvan.RobotChallange
     {
         private const int NearbyRadius = 1;
         private const int MapSize = 100;
+        private const int BaseAttackCost = 30;
+        private const double EnergyGainFactor = 0.1; 
 
         public static int GetAuthorRobotCount(IList<Robot.Common.Robot> robots, string author) =>
             robots.AsParallel().Count(robot => robot.OwnerName == author);
@@ -42,11 +44,11 @@ namespace FranchukIvan.RobotChallange
                 .Where(robot => robot.OwnerName != author)
                 .Select(robot =>
                 {
-                    int distanceCost = GetDistanceCost(currentPosition, robot.Position) + 30;
-                    int netEnergyGain = (int)(robot.Energy * 0.1) - distanceCost;
+                    int distanceCost = GetDistanceCost(currentPosition, robot.Position) + BaseAttackCost;
+                    int netEnergyGain = (int)(robot.Energy * EnergyGainFactor) - distanceCost;
                     if (netEnergyGain >= 0)
                     {
-                        int key = distanceCost - (int)(robot.Energy * 0.1);
+                        int key = distanceCost - (int)(robot.Energy * EnergyGainFactor);
                         return new KeyValuePair<int, Position>(key, robot.Position);
                     }
                     return new KeyValuePair<int, Position>(int.MaxValue, robot.Position);

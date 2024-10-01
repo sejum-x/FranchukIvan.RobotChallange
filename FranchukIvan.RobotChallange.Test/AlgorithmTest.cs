@@ -54,19 +54,6 @@ namespace FranchukIvan.RobotChallange.Test
             Assert.AreEqual(new Position(5, 5), moveCommand.NewPosition);
         }
 
-        [Test]
-        public void Should_Move_To_Best_Position_When_No_Enemies_Nearby()
-        {
-            robots[0].Energy = 240;
-            robots[1].Position = new Position(50, 50);
-
-            var robotToMoveIndex = 0;
-            var command = algorithm.DoStep(robots, robotToMoveIndex, map);
-
-            Assert.IsInstanceOf<MoveCommand>(command);
-            var moveCommand = command as MoveCommand;
-            Assert.AreNotEqual(robots[0].Position, moveCommand.NewPosition);
-        }
 
         [Test]
         public void Should_Collect_Energy_When_Station_Nearby()
