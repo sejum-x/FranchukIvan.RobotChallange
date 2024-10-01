@@ -11,7 +11,7 @@ namespace FranchukIvan.RobotChallange
         private int currentRound = 0;
         private const int MaxRobotsCount = 100;
         private const int MinEnergyForNewRobot = 250;
-        
+
         public string Author => "Ivan Franchuk";
 
         public RobotCommand DoStep(IList<Robot.Common.Robot> robots, int robotToMoveIndex, Map map)
@@ -30,7 +30,6 @@ namespace FranchukIvan.RobotChallange
 
             return ExecuteActions(actions) ?? new CollectEnergyCommand();
         }
-
 
         private void InitializeRound(int robotToMoveIndex)
         {
@@ -51,20 +50,20 @@ namespace FranchukIvan.RobotChallange
         {
             return Functions.GetAuthorRobotCount(robots, Author) < MaxRobotsCount && robot.Energy > MinEnergyForNewRobot;
         }
-        
+
         private RobotCommand TryAttack(Robot.Common.Robot robot, IList<Robot.Common.Robot> robots)
         {
-            var attackTargets = Functions.GetRobotsToNearAttack(robot.Position, robots, this.Author, currentRound);
-            KeyValuePair<int, Position> adjacentTarget = attackTargets.FirstOrDefault(target => Functions.IsAdjacent(robot.Position, target.Value));
+            var attackTargets = Functions.getRobotsToNearAttack(robot.Position, robots, this.Author, currentRound);
+            var adjacentTarget = attackTargets.FirstOrDefault(target => Functions.IsAdjacent(robot.Position, target.Value));
 
             if (adjacentTarget.Value != null)
             {
                 return new MoveCommand { NewPosition = adjacentTarget.Value };
             }
-             
+
             if (attackTargets.Count > 0)
             {
-                KeyValuePair<int, Position> bestTarget = attackTargets.First();
+                var bestTarget = attackTargets.First();
                 if (robot.Energy > Functions.GetDistanceCost(robot.Position, bestTarget.Value))
                 {
                     return new MoveCommand { NewPosition = bestTarget.Value };
@@ -73,7 +72,7 @@ namespace FranchukIvan.RobotChallange
 
             return null;
         }
-        
+
         private bool HasEnoughEnergyNearby(Robot.Common.Robot robot, Map map)
         {
             return map.GetNearbyResources(robot.Position, 2).Sum(station => station.Energy) > 150;
@@ -81,14 +80,19 @@ namespace FranchukIvan.RobotChallange
 
         private RobotCommand TryMoveToBestPosition(Robot.Common.Robot robot, Map map, IList<Robot.Common.Robot> robots)
         {
-            foreach (var positionRate in Functions.EvaluatePositionValue(map, robot.Position, robots, Author))
+            var bestPosition = Functions
+                .EvaluatePositionValue(map, robot.Position, robots, Author)
+                .AsParallel()
+                .FirstOrDefault(positionRate =>
+                    robot.Energy > Functions.GetDistanceCost(robot.Position, positionRate.Value) &&
+                    Functions.IsAvailablePosition(map, robots, positionRate.Value, Author)
+                );
+
+            if (!bestPosition.Equals(default(KeyValuePair<int, Position>)))
             {
-                if (robot.Energy > Functions.GetDistanceCost(robot.Position, positionRate.Value) &&
-                    Functions.IsAvailablePosition(map, robots, positionRate.Value, Author))
-                {
-                    return new MoveCommand { NewPosition = positionRate.Value };
-                }
+                return new MoveCommand { NewPosition = bestPosition.Value };
             }
+
             return null;
         }
 
