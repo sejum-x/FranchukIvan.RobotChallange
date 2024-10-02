@@ -1,6 +1,5 @@
 using NUnit.Framework;
 using Robot.Common;
-using System.Collections.Generic;
 
 namespace FranchukIvan.RobotChallange.Test
 {
@@ -14,7 +13,6 @@ namespace FranchukIvan.RobotChallange.Test
         [SetUp]
         public void Setup()
         {
-            // Створюємо новий екземпляр CommandChain (можеш замінити на мок-об'єкт при потребі)
             commandChain = new CommandChain();
             algorithm = new IvanFranchukAlgorithm(commandChain);
 

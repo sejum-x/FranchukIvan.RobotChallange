@@ -12,7 +12,6 @@ namespace FranchukIvan.RobotChallange
         private readonly CommandChain commandChain;
         public string Author => "Ivan Franchuk";
 
-        // Конструктор з ін'єкцією залежності
         public IvanFranchukAlgorithm(CommandChain commandChain)
         {
             this.commandChain = commandChain ?? throw new ArgumentNullException(nameof(commandChain));

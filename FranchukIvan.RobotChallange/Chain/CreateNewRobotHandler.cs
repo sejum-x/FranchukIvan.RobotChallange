@@ -1,6 +1,5 @@
 ﻿using Robot.Common;
 using System.Collections.Generic;
-using FranchukIvan.RobotChallange;
 
 namespace FranchukIvan.RobotChallange
 {

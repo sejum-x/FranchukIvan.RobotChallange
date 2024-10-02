@@ -1,7 +1,5 @@
 ﻿using NUnit.Framework;
 using Robot.Common;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace FranchukIvan.RobotChallange.Test
 {

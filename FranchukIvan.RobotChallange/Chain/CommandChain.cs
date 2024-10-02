@@ -9,8 +9,8 @@ namespace FranchukIvan.RobotChallange
 
         public CommandChain()
         {
-            _handlers.Add(new CollectEnergyHandler());
             _handlers.Add(new CreateNewRobotHandler());
+            _handlers.Add(new CollectEnergyHandler());
             _handlers.Add(new AttackHandler());
             _handlers.Add(new MoveToBestPositionHandler());
         }
