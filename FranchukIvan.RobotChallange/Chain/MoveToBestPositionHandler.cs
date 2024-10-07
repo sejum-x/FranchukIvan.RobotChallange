@@ -1,4 +1,5 @@
-﻿using Robot.Common;
+﻿using FranchukIvan.RobotChallange.Utilities;
+using Robot.Common;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -8,12 +9,12 @@ namespace FranchukIvan.RobotChallange
     {
         public RobotCommand Handle(Robot.Common.Robot robot, IList<Robot.Common.Robot> robots, Map map, string author, int currentRound)
         {
-            var bestPosition = Functions
+            var bestPosition = EvaluateUtility
                 .EvaluatePositionValue(map, robot.Position, robots, author)
                 .AsParallel()
                 .FirstOrDefault(positionRate =>
-                    robot.Energy > Functions.GetDistanceCost(robot.Position, positionRate.Value) &&
-                    Functions.IsAvailablePosition(map, robots, positionRate.Value, author)
+                    robot.Energy > DistanceUtility.GetDistanceCost(robot.Position, positionRate.Value) &&
+                    PositionUtility.IsAvailablePosition(map, robots, positionRate.Value, author)
                 );
 
             if (!bestPosition.Equals(default(KeyValuePair<int, Position>)))

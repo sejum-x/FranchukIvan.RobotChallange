@@ -1,4 +1,5 @@
-﻿using Robot.Common;
+﻿using FranchukIvan.RobotChallange.Utilities;
+using Robot.Common;
 using System.Collections.Generic;
 
 namespace FranchukIvan.RobotChallange
@@ -10,7 +11,7 @@ namespace FranchukIvan.RobotChallange
 
         public RobotCommand Handle(Robot.Common.Robot robot, IList<Robot.Common.Robot> robots, Map map, string author, int currentRound)
         {
-            if (Functions.GetAuthorRobotCount(robots, author) < MaxRobotsCount && robot.Energy > MinEnergyForNewRobot)
+            if (RobotUtility.GetAuthorRobotCount(robots, author) < MaxRobotsCount && robot.Energy > MinEnergyForNewRobot)
             {
                 return new CreateNewRobotCommand();
             }

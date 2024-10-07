@@ -48,26 +48,7 @@ namespace FranchukIvan.RobotChallange.Test
 
             Assert.IsInstanceOf<CreateNewRobotCommand>(result);
         }
-
-        /*[Test]
-        public void Execute_Should_Return_Null_When_No_Handlers_Return_Command()
-        {
-            var robot = new Robot.Common.Robot { Position = new Position(0, 0), Energy = 100, OwnerName = "Ivan" };
-            var robots = new List<Robot.Common.Robot>();
-            var map = new Map();
-            int currentRound = 1;
-
-            foreach (var handler in _commandChain.GetType().GetField("_handlers", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).GetValue(_commandChain) as List<ICommandHandler>)
-            {
-                _mockHandler.Setup(h => h.Handle(robot, robots, map, "Ivan", currentRound))
-                    .Returns((RobotCommand)null);
-            }
-
-            var result = _commandChain.Execute(robot, robots, map, "Ivan", currentRound);
-
-            Assert.IsInstanceOf<CollectEnergyCommand>(result); 
-        }*/
-
+        
         [Test]
         public void CollectEnergyHandler_Should_Return_CollectEnergyCommand_When_NearbyEnergy_Is_Above_Threshold()
         {

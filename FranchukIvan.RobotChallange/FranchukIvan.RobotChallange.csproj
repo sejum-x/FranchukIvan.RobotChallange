@@ -54,6 +54,12 @@
     <Compile Include="FranchukIvanAlgorithm.cs" />
     <Compile Include="Functions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Utilities\AttackUtility.cs" />
+    <Compile Include="Utilities\DistanceUtility.cs" />
+    <Compile Include="Utilities\EnergyUtility.cs" />
+    <Compile Include="Utilities\EvaluateUtility.cs" />
+    <Compile Include="Utilities\PositionUtility.cs" />
+    <Compile Include="Utilities\RobotUtility.cs" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
